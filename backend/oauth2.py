@@ -8,7 +8,8 @@ import functools
 
 from google.cloud import ndb
 
-from backend import user, error
+from backend import error
+from backend.models import user
 
 
 class Unauthorized(error.Error):

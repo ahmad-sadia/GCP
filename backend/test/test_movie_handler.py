@@ -1,7 +1,4 @@
-from unittest import skip
-
-from backend import test, user
-
+from backend import test
 
 # @skip
 from backend.handlers.movies import _fetch_first_100_movies_by_title

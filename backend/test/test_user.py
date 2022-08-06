@@ -1,4 +1,5 @@
-from backend import test, user
+from backend import test
+from backend.models import user
 
 
 class TestUser(test.TestCase):

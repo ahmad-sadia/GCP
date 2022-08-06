@@ -2,7 +2,8 @@ import time
 
 from backend.wsgi import remote, messages, message_types
 
-from backend import api, user
+from backend import api
+from backend.models import user
 from backend.oauth2 import oauth2, Oauth2
 from backend.swagger import swagger
 
