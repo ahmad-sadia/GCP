@@ -6,14 +6,15 @@ import requests
 from backend.handlers.constants import OMDB_API_KEY, OMDB_URL
 
 # json.loads(res.content.decode('utf8').replace("'", '"'))
-from backend.models import Movie
+from backend.models.movie import Movie
 
 
 def _fetch_first_100_movies_by_title(title: str) -> Optional[List[Any]]:
     if not title or type(title) is not str:
         return None
     result = []
-    for i in range(1, 1): #todo 1, 11
+    pages_count = 1  # todo 1, 11
+    for i in range(1, pages_count):
         res = requests.get(url=_build_omdb_url(title, i))
         if res.status_code == 200:
             res_json = res.json()
@@ -21,6 +22,8 @@ def _fetch_first_100_movies_by_title(title: str) -> Optional[List[Any]]:
                 result += [Movie(title=m['Title'], year=int(m['Year'])) for m in res_json['Search']]
             else:
                 break
+        else:
+            break
     return result
 
 
