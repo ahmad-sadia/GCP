@@ -27,19 +27,18 @@ class Movie(ndb.Model):
     title = ndb.StringProperty(indexed=True)
     poster = ndb.StringProperty()
     imdb_id = ndb.StringProperty('iid')
-    year = ndb.IntegerProperty(indexed=False)
+    year = ndb.StringProperty()
     type = ndb.IntegerProperty(indexed=False, choices=(VideoTypes.MOVIE, VideoTypes.EPISODE, VideoTypes.SERIES),
                                default=VideoTypes.MOVIE)
     created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
     @classmethod
-    def create(cls, title: str, poster: str, imdb_id: str, year: int, _type: str):
+    def create(cls, title: str, year: str, _type: str = 'movie', poster: str = None, imdb_id: str = None):
         if not title or len(title) > 1024:
-            raise TitleInvalid('Invalid Title.')
+            raise TitleInvalid(f'Invalid Title: {title}')
         if _type:
             _type = cls._set_type(_type)
-            raise TitleInvalid('Invalid Title.')
-        if not 1888 <= year <= datetime.datetime.now().year + 50:
+        if not 1888 <= int(year) <= datetime.datetime.now().year + 50:
             raise YearInvalid(
                 f"Year: {year} is invalid movie year. Valid year range is (1888-{datetime.datetime.now().year + 50}")
         entity = cls(
@@ -57,14 +56,29 @@ class Movie(ndb.Model):
         # Assuming OMDB is a trusted source.
         ndb.put_multi(movies)
 
+    @classmethod
+    def list(cls, offset=0, limit=10):
+        return cls.query().order(Movie.title).fetch(offset=offset, limit=limit)
+
+    # There must be a smarter way to replace the following two methods
     @staticmethod
     def _set_type(_type):
-        if _type == 'm':
-            _type = VideoTypes.MOVIE
-        elif _type == 'e':
-            _type = VideoTypes.EPISODE
-        elif _type == 's':
-            _type = VideoTypes.SERIES
+        if _type == 'movie':
+            return VideoTypes.MOVIE
+        elif _type == 'episode':
+            return VideoTypes.EPISODE
+        elif _type == 'series':
+            return VideoTypes.SERIES
         else:
             raise TypeInvalid(f'Invalid Type: {_type}')
-        return _type
+
+    @staticmethod
+    def get_type(_type):
+        if _type == VideoTypes.MOVIE:
+            return 'movie'
+        elif _type == VideoTypes.EPISODE:
+            return 'episode'
+        elif _type == VideoTypes.SERIES:
+            return 'series'
+        else:
+            raise TypeInvalid(f'Invalid Type: {_type}')
