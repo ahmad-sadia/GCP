@@ -14,9 +14,9 @@ class YearInvalid(error.Error):
 
 
 class VideoTypes:
-    MOVIE = 0
-    EPISODE = 1
-    SERIES = 2
+    MOVIE = 100
+    EPISODE = 200
+    SERIES = 300
 
 
 class Movie(ndb.Model):
@@ -29,7 +29,7 @@ class Movie(ndb.Model):
     created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
     @classmethod
-    def create(cls, title: str, year: int):
+    def create(cls, title: str, poster: str, imdb_id: str, year: int, type: str):
         if not title or len(title) > 1024:
             raise TitleInvalid("Invalid Title.")
         if not 1888 <= year <= datetime.datetime.now().year + 50:
