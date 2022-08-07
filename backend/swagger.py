@@ -1,7 +1,10 @@
 from backend.wsgi import messages
 
 
-def swagger(summary="", deprecated_fields=[]):
+def swagger(summary="", deprecated_fields=None):
+    if deprecated_fields is None:
+        deprecated_fields = []
+
     def decorator(f):
         f.swagger = True
         f.summary = summary
@@ -23,13 +26,14 @@ def variant_to_type(variant):
         "BYTES": "null",
         "UINT32": "integer",
         "ENUM": "null",
-        "SINT32": "integer",
         "SINT32": "integer"
     }
     return mapping.get(variant.name, "null")
 
 
-def message_to_schema(message, deprecated_fields=[]):
+def message_to_schema(message, deprecated_fields=None):
+    if deprecated_fields is None:
+        deprecated_fields = []
     schema = {
         "type": "object"
     }
