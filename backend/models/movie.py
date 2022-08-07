@@ -22,8 +22,8 @@ class VideoTypes:
 class Movie(ndb.Model):
 
     title = ndb.StringProperty(indexed=True)
-    poster = ndb.StringProperty(indexed=False)
-    imdb_id = ndb.StringProperty(indexed=False)
+    poster = ndb.StringProperty()
+    imdb_id = ndb.StringProperty('iid')
     year = ndb.IntegerProperty(indexed=False)
     type = ndb.IntegerProperty(indexed=False, choices=(VideoTypes.MOVIE, VideoTypes.EPISODE, VideoTypes.SERIES), default=VideoTypes.MOVIE)
     created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
