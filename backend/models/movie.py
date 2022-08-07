@@ -17,6 +17,10 @@ class TypeInvalid(error.Error):
     pass
 
 
+class MovieNotFound(error.Error):
+    pass
+
+
 class VideoTypes:
     MOVIE = 100
     EPISODE = 200
@@ -53,14 +57,20 @@ class Movie(ndb.Model):
 
     @classmethod
     def batch_create(cls, movies: []):
-        # Assuming OMDB is a trusted source.
         ndb.put_multi(movies)
 
     @classmethod
     def list(cls, offset=0, limit=10):
         return cls.query().order(Movie.title).fetch(offset=offset, limit=limit)
 
-    # There must be a smarter way to replace the following two methods
+    @classmethod
+    def get_by_title(cls, title):
+        movie = cls.query().get(Movie.title == title)
+        if movie is None or not isinstance(movie, cls):
+            raise MovieNotFound(f'No movie with title: {title}')
+        return movie
+
+    # ToDo: There must be a smarter way to replace the following two methods
     @staticmethod
     def _set_type(_type):
         if _type == 'movie':

@@ -32,11 +32,6 @@ class TestMovie(test.TestCase):
 
         self.assertEqual(old_count + 2, Movie.query().count())
 
-    # title = messages.StringField(1, required=True)
-    # poster = messages.StringField(2, required=False)
-    # imdb_id = messages.StringField(3, required=False)
-    # year = messages.IntegerField(4, required=True)
-    # type = messages.EnumField(VideoType.Type, 5, default='m', required=False)
 class TestMovieApi(test.TestCase):
     def test_create(self):
         movie = {
@@ -48,12 +43,17 @@ class TestMovieApi(test.TestCase):
 
         }
         resp = self.api_client.post("movie.create", movie)
+        print('resp')
+        print(resp)
         self.assertEqual(resp.get("error"), None)
-        # resp = self.api_client.post("user.me", headers=dict(authorization=access_token))
-        # self.assertEqual(resp.get("error"), None)
-        # self.assertEqual(resp.get("email"), "test@gmail.com")
-        # resp = self.api_client.post("user.get", dict(id=resp.get("id")), headers=dict(authorization=access_token))
-        # self.assertEqual(resp.get("error"), None)
+        self.assertEqual(resp.get("title"), movie['title'])
+        self.assertEqual(resp.get("type"), movie['type'])
+        self.assertEqual(resp.get("year"), movie['year'])
+        self.assertEqual(resp.get("imdb_id"), movie['imdb_id'])
+        self.assertEqual(resp.get("poster"), movie['poster'])
+
+        resp = self.api_client.post("movie.get", dict(title=movie['title']))
+        self.assertEqual(resp.get("error"), None)
 
     def test_list(self):
         movies = []
@@ -79,6 +79,7 @@ class TestMovieApi(test.TestCase):
         self.assertEqual(resp.get("movies")[0]['title'], 'a')
         self.assertEqual(len(resp.get("movies")), 13)
 
-        # test default offset and limits
+        # test default limits
         resp = self.api_client.post("movie.list")
         self.assertEqual(len(resp.get("movies")), 10)
+        
