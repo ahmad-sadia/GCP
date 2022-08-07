@@ -8,7 +8,6 @@ from backend.swagger import swagger
 
 
 class VideoType(messages.Message):
-
     class Type(messages.Enum):
         MOVIE = 'm'
         EPISODE = 'e'
@@ -32,10 +31,9 @@ class Movie(remote.Service):
     @swagger("Create a movie")
     @remote.method(CreateRequest, GetMoviesResponse)
     def create(self, request):
-        movie = MovieModel.create(title=request.title,
-                                  poster=request.poster,
+        movie = MovieModel.create(title=request.title, poster=request.poster,
                                   imdb_id=request.imdb_id, year=request.year,
-                                  type=request.type
+                                  _type=request.type
                                   )
         return GetMoviesResponse(
             title=movie.title,
