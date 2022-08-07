@@ -13,13 +13,19 @@ class YearInvalid(error.Error):
     pass
 
 
+class VideoTypes:
+    MOVIE = 0
+    EPISODE = 1
+    SERIES = 2
+
+
 class Movie(ndb.Model):
 
-    def __int__(self):
-        self.super(Movie, self).__init__()
-
     title = ndb.StringProperty(indexed=True)
+    poster = ndb.StringProperty(indexed=False)
+    imdb_id = ndb.StringProperty(indexed=False)
     year = ndb.IntegerProperty(indexed=False)
+    type = ndb.IntegerProperty(indexed=False, choices=(VideoTypes.MOVIE, VideoTypes.EPISODE, VideoTypes.SERIES), default=VideoTypes.MOVIE)
     created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
     @classmethod
