@@ -99,3 +99,10 @@ class TestMovieApi(test.TestCase):
         fetch_100_movies.assert_not_called()
         self.api_client.post('movie.get', dict(title='test'))
         self._assert_calling_get_request(fetch_100_movies)
+
+    def test_delete_by_id(self):
+        m = Movie.create(title='test_to be deleted', year='2000')
+        res = self.api_client.post('movie.delete', dict(id=str(m.key.id())))
+        self.assertEqual(res.get('error'), None)
+        self.assertEqual(res, {})
+

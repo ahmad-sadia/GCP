@@ -71,6 +71,13 @@ class Movie(ndb.Model):
             raise MovieNotFound(f'No movie with title: {title}')
         return movie
 
+    @classmethod
+    def delete_by_id(cls, _id):
+        movie = Movie.get_by_id(int(_id))
+        if movie is None or not isinstance(movie, cls):
+            raise MovieNotFound(f'No movie with id: {_id}')
+        movie.key.delete()
+
     @staticmethod
     def _set_type(_type):
         if _type == 'movie':

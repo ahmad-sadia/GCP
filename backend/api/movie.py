@@ -8,6 +8,7 @@ from backend.wsgi import remote, messages
 from backend import api
 from backend.swagger import swagger
 from backend.oauth2 import oauth2, Oauth2
+from backend.wsgi.protorpc import message_types
 
 
 class CreateRequest(messages.Message):
@@ -20,6 +21,10 @@ class CreateRequest(messages.Message):
 
 class GetRequest(messages.Message):
     title = messages.StringField(1, required=True)
+
+
+class DeleteRequest(messages.Message):
+    id = messages.StringField(1, required=True)
 
 
 class GetResponse(messages.Message):
@@ -86,3 +91,9 @@ class Movie(remote.Service):
             year=m.year,
             type=MovieModel.get_type(m.type),
         ) for m in movies if m is not None])
+
+    @swagger("Delete a movie by ID")
+    @remote.method(DeleteRequest, message_types.VoidMessage)
+    def delete(self, request):
+        MovieModel.delete_by_id(request.id)
+        return message_types.VoidMessage()
