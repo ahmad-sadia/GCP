@@ -1,3 +1,6 @@
+from unittest.mock import patch
+from backend.handlers.constants import OMDB_URL, OMDB_API_KEY, OMDB_MOVIES_WORD_TITLE, OMDB_PAGES_COUNT
+
 from backend import test
 
 from backend.models.movie import Movie
@@ -18,22 +21,18 @@ class TestMovie(test.TestCase):
     # TODO: TEST ASSERTION (ERRORS)
 
     def test_batch_create(self):
-
-        # Assuming OMDB is a trusted source.
         old_count = Movie.query().count()
         movies = []
-
         mov1 = Movie(title='title1', year='2001')
         mov2 = Movie(title='title2', year='2002')
-
         movies.extend([mov1, mov2])
-
         Movie.batch_create(movies)
-
         self.assertEqual(old_count + 2, Movie.query().count())
 
+
 class TestMovieApi(test.TestCase):
-    def test_create(self):
+    @patch('backend.handlers.movies.requests.get')
+    def test_create(self, fetch_100_movies):
         movie = {
             'title': 'The Lord of the Rings: The Fellowship of the Ring',
             'poster': 'https://m.media-amazon.com/images/M/MV5BN2EyZjM3NzUtNWUzMi00MTgxLWI0NTctMzY4M2VlOTdjZWRiXkEyXkFqcGdeQXVyNDUzOTQ5MjY@._V1_SX300.jpg',
@@ -42,44 +41,61 @@ class TestMovieApi(test.TestCase):
             'type': 'movie',
 
         }
-        resp = self.api_client.post("movie.create", movie)
-        print('resp')
-        print(resp)
-        self.assertEqual(resp.get("error"), None)
-        self.assertEqual(resp.get("title"), movie['title'])
-        self.assertEqual(resp.get("type"), movie['type'])
-        self.assertEqual(resp.get("year"), movie['year'])
-        self.assertEqual(resp.get("imdb_id"), movie['imdb_id'])
-        self.assertEqual(resp.get("poster"), movie['poster'])
+        resp = self.api_client.post('movie.create', movie)
+        self.assertEqual(resp.get('error'), None)
+        self.assertEqual(resp.get('title'), movie['title'])
+        self.assertEqual(resp.get('type'), movie['type'])
+        self.assertEqual(resp.get('year'), movie['year'])
+        self.assertEqual(resp.get('imdb_id'), movie['imdb_id'])
+        self.assertEqual(resp.get('poster'), movie['poster'])
 
-        resp = self.api_client.post("movie.get", dict(title=movie['title']))
-        self.assertEqual(resp.get("error"), None)
+        resp = self.api_client.post('movie.get', dict(title=movie['title']))
+        fetch_100_movies.assert_not_called()
+        self.assertEqual(resp.get('error'), None)
 
-    def test_list(self):
+    @patch('backend.handlers.movies.requests.get')
+    def test_list(self, fetch_100_movies):
         movies = []
         for i in range(10):
-            mov = Movie(title=f'title{i}', year=f'200{i}', poster='"https://m.media-amazon.com/images/M/MV5B')
+            mov = Movie(title=f'title{i}', year=f'200{i}', poster='https://m.media-amazon.com/images/M/MV5B')
             movies.append(mov)
-        mov1 = Movie(title='z', year=f'2001', poster='"https://m.media-amazon.com/images/M/MV5B')
-        mov2 = Movie(title='a', year=f'2001', poster='"https://m.media-amazon.com/images/M/MV5B')
-        mov3 = Movie(title='c', year=f'2001', poster='"https://m.media-amazon.com/images/M/MV5B')
-        movies.append(mov1)
-        movies.append(mov2)
-        movies.append(mov3)
+        movies.append(Movie(title='z', ))
+        movies.append(Movie(title='a', ))
+        movies.append(Movie(title='c', ))
 
         Movie.batch_create(movies)
+        fetch_100_movies.assert_not_called()
+        resp = self.api_client.post('movie.list', dict(offset=0, limit=10))
+        fetch_100_movies.assert_not_called()
+        self.assertEqual(len(resp.get('movies')), 10)
+        self.assertEqual(resp.get('error'), None)
 
-        resp = self.api_client.post("movie.list", dict(offset=0, limit=10))
-        self.assertEqual(len(resp.get("movies")), 10)
-        self.assertEqual(resp.get("error"), None)
-
-        resp = self.api_client.post("movie.list", dict(offset=0, limit=30))
-        self.assertEqual(resp.get("error"), None)
-        self.assertEqual(resp.get("movies")[-1]['title'], 'z')
-        self.assertEqual(resp.get("movies")[0]['title'], 'a')
-        self.assertEqual(len(resp.get("movies")), 13)
+        resp = self.api_client.post('movie.list', dict(offset=0, limit=30))
+        fetch_100_movies.assert_not_called()
+        self.assertEqual(resp.get('error'), None)
+        self.assertEqual(resp.get('movies')[-1]['title'], 'z')
+        self.assertEqual(resp.get('movies')[0]['title'], 'a')
+        self.assertEqual(len(resp.get('movies')), 13)
 
         # test default limits
-        resp = self.api_client.post("movie.list")
-        self.assertEqual(len(resp.get("movies")), 10)
-        
+        resp = self.api_client.post('movie.list')
+        fetch_100_movies.assert_not_called()
+        self.assertEqual(len(resp.get('movies')), 10)
+
+    @staticmethod
+    def _assert_calling_get_request(fetch_100_movies):
+        fetch_100_movies.assert_called()
+        fetch_100_movies.assert_called_with(
+            url=f'{OMDB_URL}?apikey={OMDB_API_KEY}&type=movie&s={OMDB_MOVIES_WORD_TITLE}&page={OMDB_PAGES_COUNT}')
+
+    @patch('backend.handlers.movies.requests.get')
+    def test_attempting_to_populate_empty_db_on_list(self, fetch_100_movies):
+        fetch_100_movies.assert_not_called()
+        self.api_client.post('movie.list', dict(offset=0, limit=10))
+        self._assert_calling_get_request(fetch_100_movies)
+
+    @patch('backend.handlers.movies.requests.get')
+    def test_attempting_to_populate_empty_db_on_get(self, fetch_100_movies):
+        fetch_100_movies.assert_not_called()
+        self.api_client.post('movie.get', dict(title='test'))
+        self._assert_calling_get_request(fetch_100_movies)
