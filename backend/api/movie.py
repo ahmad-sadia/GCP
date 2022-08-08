@@ -52,7 +52,7 @@ class Movie(remote.Service):
     def create(self, request):
         movie = MovieModel.create(title=request.title, poster=request.poster,
                                   imdb_id=request.imdb_id, year=request.year,
-                                  _type=request.type
+                                  type=request.type
                                   )
         return GetResponse(
             title=movie.title,
@@ -93,7 +93,8 @@ class Movie(remote.Service):
         ) for m in movies if m is not None])
 
     @swagger("Delete a movie by ID")
+    @oauth2.required()
     @remote.method(DeleteRequest, message_types.VoidMessage)
     def delete(self, request):
-        MovieModel.delete_by_id(request.id)
+        MovieModel.delete_by_id(int(request.id))
         return message_types.VoidMessage()
