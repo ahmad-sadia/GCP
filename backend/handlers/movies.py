@@ -14,7 +14,8 @@ def _fetch_100_movies_by_a_word_in_a_title(word: str) -> Optional[List[Any]]:
         if res.status_code == 200:
             res_json = res.json()
             if res_json['Response'] == 'True':
-                result += [Movie(title=m['Title'], year=m['Year'], poster=m['Poster'], imdb_id=m['imdbID']) for m in res_json['Search']]
+                result += [Movie(title=m['Title'], year=m['Year'], poster=m['Poster'], imdb_id=m['imdbID']) for m in
+                           res_json['Search']]
             else:
                 break
         else:

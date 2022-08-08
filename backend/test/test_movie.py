@@ -104,6 +104,7 @@ class TestMovie(test.TestCase):
         movies = Movie.list(0, 0)
         self.assertEqual(len(movies), 2)
 
+
 class TestMovieApi(test.TestCase):
     @patch('backend.handlers.movies.requests.get')
     def test_create(self, fetch_100_movies):
@@ -159,7 +160,7 @@ class TestMovieApi(test.TestCase):
     def _assert_calling_get_request(fetch_100_movies):
         fetch_100_movies.assert_called()
         fetch_100_movies.assert_called_with(
-            url=f'{OMDB_URL}?apikey={OMDB_API_KEY}&type=movie&s={OMDB_MOVIES_WORD_TITLE}&page={OMDB_PAGES_COUNT}')
+            url=f'{OMDB_URL}?apikey={OMDB_API_KEY}&type=movie&s={OMDB_MOVIES_WORD_TITLE}&page=1')
 
     @patch('backend.handlers.movies.requests.get')
     def test_attempting_to_populate_empty_db_on_list(self, fetch_100_movies):
