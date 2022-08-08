@@ -1,5 +1,7 @@
 import time
 
+from backend.handlers.constants import OMDB_MOVIES_WORD_TITLE
+from backend.handlers.movies import _fetch_100_movies_by_a_word_in_a_title
 from backend.models.movie import Movie as MovieModel
 from backend.wsgi import remote, messages
 
@@ -58,6 +60,9 @@ class Movie(remote.Service):
     @swagger("Get a movie by title")
     @remote.method(GetRequest, GetResponse)
     def get(self, request):
+        if MovieModel.query().count() == 0:
+            MovieModel.batch_create(_fetch_100_movies_by_a_word_in_a_title(OMDB_MOVIES_WORD_TITLE))
+
         movie = MovieModel.get_by_title(request.title)
         return GetResponse(
             title=movie.title,
@@ -70,6 +75,9 @@ class Movie(remote.Service):
     @swagger("List movies")
     @remote.method(ListMoviesRequest, ListMoviesResponse)
     def list(self, request):
+        if MovieModel.query().count() == 0:
+            MovieModel.batch_create(_fetch_100_movies_by_a_word_in_a_title(OMDB_MOVIES_WORD_TITLE))
+
         movies = MovieModel.list(request.offset, request.limit)
         return ListMoviesResponse(movies=[GetResponse(
             title=m.title,
