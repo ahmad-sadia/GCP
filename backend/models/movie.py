@@ -57,7 +57,8 @@ class Movie(ndb.Model):
 
     @classmethod
     def batch_create(cls, movies: []):
-        ndb.put_multi(movies)
+        if movies:
+            ndb.put_multi(movies)
 
     @classmethod
     def list(cls, offset=0, limit=10):
@@ -70,7 +71,6 @@ class Movie(ndb.Model):
             raise MovieNotFound(f'No movie with title: {title}')
         return movie
 
-    # ToDo: There must be a smarter way to replace the following two methods
     @staticmethod
     def _set_type(_type):
         if _type == 'movie':
